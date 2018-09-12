@@ -1,32 +1,30 @@
 // Enemies our player must avoid
-var Enemy = function(x, y) {
+var Enemy = function(x, y, speed) {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
-    let verticalAlignCenter = -10;
+    let verticalAlignCenter = +60;
     this.x = x;
-    this.y = verticalAlignCenter + y;
+    this.y = y + verticalAlignCenter;
+    this.speed = speed;
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
-
-
 };
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
 Enemy.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
+
     //Size of each tile
     this.tileWidth = 101;
 
     //Distance at which enemy walks off the game board
     this.offScreen = this.tileWidth * 5;
 
+    //Move enemy forward until it get's off screen
     if(this.x < this.offScreen){
         //move enemy
-        this.x += 200 * dt;
+        this.x += this.speed * dt;
     }else{
         //walk in from the left
         //if enemy crosses the end of the board
@@ -42,72 +40,109 @@ Enemy.prototype.render = function() {
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
-class Hero {
+class Player {
     constructor(){        
         this.sprite = 'images/char-boy.png';
 
         //Initial position
-        this.x = 202; 
-        this.y = 405; 
+        //This places player on 3rd col, 1st row
+        this.startX = 202;
+        this.startY = 83*4+60//405;
+
+
+        this.x = this.startX; 
+        this.y = this.startY;
 
         //number of pixels per move
-        this.moveHorizontal = 101; 
-        this.moveVertical = 83;
+        this.moveRight = 101; 
+        this.moveLeft = -101
+        this.moveUp = -83;
+        this.moveDown = 83;
 
-        
-        this.currentX = 3;
-        this.currentY = 1;
+        //Current location on the grid
+        this.currentColumnPosition = 3;
+        this.currentRowPosition = 1;
         
     }
 
-    //Render hero sprite
+    //Render Player sprite
     render() {
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
     }
 
-    //handle input
+    //This controles Player's movement
     handleInput(direction) {
         switch(direction) {
             case 'right':
-                if(this.currentX != 5) {
-                    this.x += this.moveHorizontal; 
-                    this.currentX++;            
+                if(this.currentColumnPosition != 5) {
+                    this.x += this.moveRight; 
+                    this.currentColumnPosition++;            
                 }
                 break;                
             case 'left':                
-                if(this.currentX != 1) {
-                    this.x -= this.moveHorizontal;
-                    this.currentX--;               
+                if(this.currentColumnPosition != 1) {
+                    this.x += this.moveLeft;
+                    this.currentColumnPosition--;               
                 }                
                 break;
             case 'up':
-                if(this.currentY != 6)  {
-                    this.y -= this.moveVertical;
-                    this.currentY++;
+                if(this.currentRowPosition != 6)  {
+                    this.y += this.moveUp;
+                    this.currentRowPosition++;
                 }
                 break;
             case 'down':
-                if(this.currentY != 1){
-                    this.y += this.moveVertical;
-                    this.currentY--;
+                if(this.currentRowPosition != 1){
+                    this.y += this.moveDown;
+                    this.currentRowPosition--;
                 }
                 break;
         }
     }
+
+    //Update player's posotion
+    update() {
+        //Checking for collision
+        for(let enemy of allEnemies){          
+            if((enemy.y === this.y) && (enemy.x+101/2 > this.x) && (enemy.x < this.x+101/2)){
+                this.resetPlayerPosition();
+            }
+        }
+
+        //Player reaches the water field
+        if(this.y === -23){
+            const playerInstance = this;
+            //Set delay before resettng player back to original position
+            setTimeout(function() {
+                alert("Congratulations, you won! \nPress Ok to play again"); 
+                playerInstance.resetPlayerPosition();
+            }, 0);                                 
+        }
+    }
+
+    resetPlayerPosition(){
+        //Restes player's position
+        this.x = this.startX;
+        this.y = this.startY;
+
+        this.currentColumnPosition = 3;
+        this.currentRowPosition = 1;
+    }
 }
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
 
-const player = new Hero();
-const enemy1 = new Enemy(-401, 83);
-const enemy2 = new Enemy(-101, 166);
-const enemy3 = new Enemy(-101, 249);
-const enemy4 = new Enemy(-245, 249);
+const player = new Player();
+
+const enemy1 = new Enemy(-401, 0, 300);
+const enemy2 = new Enemy(-901, 166, 200);
+const enemy3 = new Enemy(-101, 83, 450);
+const enemy4 = new Enemy(-301, 0, 200);
+const enemy5 = new Enemy(-601, 166, 400);
+const enemy6 = new Enemy(-201, 83, 250);
 
 let allEnemies = [];
-allEnemies.push(enemy1, enemy2, enemy3, enemy4);
+
+allEnemies.push(enemy1, enemy2, enemy3, enemy4, enemy5, enemy6);
 
 
 // This listens for key presses and sends the keys to your
