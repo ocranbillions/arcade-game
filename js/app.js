@@ -1,11 +1,15 @@
 // Enemies our player must avoid
-var Enemy = function(x, y, speed) {
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
-    let verticalAlignCenter = +60;
+var Enemy = function(x, y, velocity) {
+    
+    //this is used to align enemy to the center of the tile
+    let verticalAlignCenter = 60;
+
+    //enemy's position
     this.x = x;
     this.y = y + verticalAlignCenter;
-    this.speed = speed;
+
+    //speed of the enemy
+    this.velocity = velocity;
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
@@ -15,18 +19,16 @@ var Enemy = function(x, y, speed) {
 // Parameter: dt, a time delta between ticks
 Enemy.prototype.update = function(dt) {
 
-    //Size of each tile
-    this.tileWidth = 101;
-
     //Distance at which enemy walks off the game board
+    this.tileWidth = 101;
     this.offScreen = this.tileWidth * 5;
 
     //Move enemy forward until it get's off screen
     if(this.x < this.offScreen){
         //move enemy
-        this.x += this.speed * dt;
+        this.x += this.velocity * dt;
     }else{
-        //walk in from the left
+        //walk in one tile off, from the left
         //if enemy crosses the end of the board
         this.x = -this.tileWidth;
     }
@@ -37,32 +39,33 @@ Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
+//Player
 class Player {
     constructor(){        
         this.sprite = 'images/char-boy.png';
 
         //Initial position
         //This places player on 3rd col, 1st row
+        let centerVertical = 60;
         this.startX = 202;
-        this.startY = 83*4+60//405;
+        this.startY = 83*4 + centerVertical;//405;
 
 
         this.x = this.startX; 
         this.y = this.startY;
 
         //number of pixels per move
-        this.moveRight = 101; 
-        this.moveLeft = -101
-        this.moveUp = -83;
-        this.moveDown = 83;
+        this.moveRight = 101;   //step one tile to the right
+        this.moveLeft = -101    //step one tile to the left
+        this.moveUp = -83;      //step one tile upwards
+        this.moveDown = 83;     //step one tile downwards
 
         //Current location on the grid
         this.currentColumnPosition = 3;
-        this.currentRowPosition = 1;
-        
+        this.currentRowPosition = 1;      
+
+        //
+        this.countCollisions = 0;  
     }
 
     //Render Player sprite
@@ -74,49 +77,72 @@ class Player {
     handleInput(direction) {
         switch(direction) {
             case 'right':
+                //Move right if player hasnt passed the 5th column
                 if(this.currentColumnPosition != 5) {
                     this.x += this.moveRight; 
                     this.currentColumnPosition++;            
                 }
                 break;                
-            case 'left':                
+            case 'left':      
+                //Move left if player hasnt passed the 1st column       
                 if(this.currentColumnPosition != 1) {
                     this.x += this.moveLeft;
                     this.currentColumnPosition--;               
                 }                
                 break;
             case 'up':
+                //Move up if player hasn't passed the top row
                 if(this.currentRowPosition != 6)  {
                     this.y += this.moveUp;
                     this.currentRowPosition++;
                 }
                 break;
             case 'down':
+                //Move down if player hasn't passed the bottom row
                 if(this.currentRowPosition != 1){
                     this.y += this.moveDown;
                     this.currentRowPosition--;
                 }
-                break;
         }
     }
 
     //Update player's posotion
     update() {
-        //Checking for collision
-        for(let enemy of allEnemies){          
-            if((enemy.y === this.y) && (enemy.x+101/2 > this.x) && (enemy.x < this.x+101/2)){
+
+        
+
+        for(let enemy of allEnemies){            
+            let enemyLeftSide = enemy.x
+            let enemyRightSide = enemy.x + 101/2;  
+            let enemyLowerBody = enemy.y;
+
+            this.playerLeftSide = this.x;
+            this.playerRightSide = this.x + 101/2; 
+            this.playerLowerBody = this.y;
+
+            //Check if enemy collides with player
+            if((enemyLowerBody === this.playerLowerBody) && (enemyRightSide > this.playerLeftSide) && (enemyLeftSide < this.playerRightSide)){
                 this.resetPlayerPosition();
+                this.countCollisions++;
+                if(this.countCollisions == 2){
+                    alert("Game Over \nPress ok to play again.");
+                    //Reset player life
+                    this.countCollisions = 0;
+                }
             }
         }
 
-        //Player reaches the water field
-        if(this.y === -23){
+        //Player reaches the river
+        let river = -23;
+        if(this.playerLowerBody === river){
             const playerInstance = this;
             //Set delay before resettng player back to original position
             setTimeout(function() {
                 alert("Congratulations, you won! \nPress Ok to play again"); 
-                playerInstance.resetPlayerPosition();
-            }, 0);                                 
+                playerInstance.resetPlayerPosition();                
+            }, 0);  
+            //Reset player life
+            this.countCollisions = 0;                               
         }
     }
 
@@ -133,6 +159,8 @@ class Player {
 
 const player = new Player();
 
+
+//Instantiate each enemy with its own path of speed
 const enemy1 = new Enemy(-401, 0, 300);
 const enemy2 = new Enemy(-901, 166, 200);
 const enemy3 = new Enemy(-101, 83, 450);
