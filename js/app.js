@@ -18,9 +18,9 @@ var Enemy = function(x, y, velocity) {
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
 Enemy.prototype.update = function(dt) {
-
-    //Distance at which enemy walks off the game board
+    
     this.tileWidth = 101;
+    //Distance at which enemy goes off the game board
     this.offScreen = this.tileWidth * 5;
 
     //Move enemy forward until it get's off screen
@@ -28,8 +28,7 @@ Enemy.prototype.update = function(dt) {
         //move enemy
         this.x += this.velocity * dt;
     }else{
-        //walk in one tile off, from the left
-        //if enemy crosses the end of the board
+        //walk-in one tile off, from the left
         this.x = -this.tileWidth;
     }
 };
@@ -39,6 +38,10 @@ Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+
+
+let playerScores = document.querySelector('.points');
+let attempts = document.querySelector('.attempts').firstElementChild;
 //Player
 class Player {
     constructor(){        
@@ -64,8 +67,10 @@ class Player {
         this.currentColumnPosition = 3;
         this.currentRowPosition = 1;      
 
-        //
+        //This keeps the number of collissions
         this.countCollisions = 0;  
+        //This keeps the points earned
+        this.countPoints = 0;
     }
 
     //Render Player sprite
@@ -107,10 +112,7 @@ class Player {
     }
 
     //Update player's posotion
-    update() {
-
-        
-
+    update() {        
         for(let enemy of allEnemies){            
             let enemyLeftSide = enemy.x
             let enemyRightSide = enemy.x + 101/2;  
@@ -124,25 +126,37 @@ class Player {
             if((enemyLowerBody === this.playerLowerBody) && (enemyRightSide > this.playerLeftSide) && (enemyLeftSide < this.playerRightSide)){
                 this.resetPlayerPosition();
                 this.countCollisions++;
+
+                if(this.countCollisions == 1){
+                    attempts.innerText = `You have only 1 attempt left`;
+                }
+
                 if(this.countCollisions == 2){
                     alert("Game Over \nPress ok to play again.");
+                    
                     //Reset player life
                     this.countCollisions = 0;
+                    
+                    // Reset points earned
+                    this.countPoints = 0;
+                    playerScores.innerText = this.countPoints; 
+
+                    //Reset text
+                    attempts.innerText = 'You have only 2 attempts';
                 }
             }
         }
 
-        //Player reaches the river
+        
         let river = -23;
+        //Player reaches the river
         if(this.playerLowerBody === river){
-            const playerInstance = this;
-            //Set delay before resettng player back to original position
-            setTimeout(function() {
-                alert("Congratulations, you won! \nPress Ok to play again"); 
-                playerInstance.resetPlayerPosition();                
-            }, 0);  
-            //Reset player life
-            this.countCollisions = 0;                               
+            //Update points
+            this.countPoints++;
+            playerScores.innerText = this.countPoints;      
+
+            //Set to initial position
+            this.resetPlayerPosition();                                   
         }
     }
 
