@@ -22,4 +22,5 @@ The goal of this game is to score as many points as possible. You score points w
 - **Udacity**
 
 ## Play 
-- Click [here](https://ocranbillions.github.io/arcade-game/) to play. Have fun!
+- Click [here](https://ocranbillions.github.io/arcade-game/) to play.
+- You can also download or clone the repo then open the index.html file to play.
