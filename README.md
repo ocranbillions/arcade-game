@@ -1,4 +1,4 @@
-# Memory Game Project
+# Arcade Game Project
 
 This is a Udacity FrontEnd NanoDegree Project.
 The goal of this game is to score as many points as possible. You score points when you are able to reach the river (top) without colliding into the enemies.
